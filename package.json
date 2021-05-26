@@ -1,0 +1,24 @@
+{
+  "name": "node-yabai-utils",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "nyu": "ts-node src/run",
+    "lint": "eslint .",
+    "build": "tsc && chmod 777 ./dist/src/run.js"
+  },
+  "preferGlobal": true,
+  "bin": {
+    "nyu": "./dist/src/run.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^15.6.1",
+    "@typescript-eslint/eslint-plugin": "^4.11.1",
+    "@typescript-eslint/parser": "^4.11.1",
+    "eslint": "^7.0.0",
+    "typescript": "^4.0.5"
+  }
+}
