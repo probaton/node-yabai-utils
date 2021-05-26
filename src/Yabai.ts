@@ -2,15 +2,24 @@ import promiseExec from './helpers/promiseExec';
 import { IYabaiWindow } from './IYabai';
 
 function exec(command: string) {
-  return promiseExec(`yabai -m ${command}`);
+  try {
+    return promiseExec(`yabai -m ${command}`);
+  } catch (e) {
+    throw new Error(`Failed to execute <${command}>\n\n${e}`);
+  }
 }
 
-function query(query: string) {
-  return exec(`query ${query}`);
+async function query(query: string) {
+  const results = await exec(`query ${query}`);
+  try {
+    return JSON.parse(results);
+  } catch (e) {
+    throw new Error(`Unable to parse query results:\n${results}\n\nError:\n${e}`);
+  }
 }
 
 async function getAllWindows(): Promise<IYabaiWindow[]> {
-  return JSON.parse(await query('--windows')) as IYabaiWindow[];
+  return (await query('--windows')) as IYabaiWindow[];
 }
 
 async function getVisibleWindows(): Promise<IYabaiWindow[]> {
@@ -31,26 +40,16 @@ async function focusWindow(windowId: number) {
   return exec(`window --focus ${windowId}`);
 }
 
-async function focusNextWindow(reverse = false) {
-  const unsortedWindows = await getVisibleWindows();
-  const windows = unsortedWindows.sort((a, b) => a.frame.x == b.frame.x ? a.frame.y - b.frame.y : a.frame.x - b.frame.x);
-  if (reverse) {
-    windows.reverse();
-  }
-
-  const currentWindow = await getCurrentWindow(windows);
-  const nextWindowIndex = windows.map(w => w.id).indexOf(currentWindow.id) + 1;
-  if (windows.length <= nextWindowIndex) {
-    return 'No windows found in the required direction';
-  }
-
-  return focusWindow(windows[nextWindowIndex].id);
+async function focusDisplay(index: number) {
+  return exec(`display --focus ${index}`);
 }
 
 export default {
   exec,
   query,
   getAllWindows,
+  getCurrentWindow,
   getVisibleWindows,
-  focusNextWindow,
+  focusDisplay,
+  focusWindow,
 };

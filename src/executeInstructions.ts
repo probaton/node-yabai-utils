@@ -11,7 +11,7 @@ export default async function executeInstructions(command: string) {
     throw new Error(`<${command}> is not a valid command. Available options are${enumerateCommands(actions)}`);
   }
 
-  return await action.func();
+  return action.func(process.argv[3]);
 }
 
 function enumerateCommands(actions: NyuAction[]) {
