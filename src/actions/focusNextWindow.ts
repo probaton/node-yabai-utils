@@ -11,7 +11,7 @@ async function focusNextWindow(direction: 'left' | 'right') {
     windows.reverse();
   }
 
-  const currentWindow = await Yabai.getCurrentWindow(windows);
+  const currentWindow = await Yabai.getCurrentWindow();
   const nextWindowIndex = windows.map(w => w.id).indexOf(currentWindow.id) + 1;
   if (windows.length <= nextWindowIndex) {
     return 'No windows found in the required direction';

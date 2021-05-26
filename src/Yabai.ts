@@ -1,55 +1,59 @@
 import promiseExec from './helpers/promiseExec';
-import { IYabaiWindow } from './IYabai';
+import storeSpaceFocus from './helpers/storeContainerFocus';
+import { IYabaiSpace, IYabaiWindow } from './IYabai';
 
-function exec(command: string) {
-  try {
-    return promiseExec(`yabai -m ${command}`);
-  } catch (e) {
-    throw new Error(`Failed to execute <${command}>\n\n${e}`);
+class Yabai {
+  public windows: Promise<IYabaiWindow[]>;
+
+  constructor() {
+    this.windows = this.getAllWindows();
+  }
+
+  async getAllWindows(): Promise<IYabaiWindow[]> {
+    return (await this.query('--windows')) as IYabaiWindow[];
+  }
+
+  exec(command: string) {
+    try {
+      return promiseExec(`yabai -m ${command}`);
+    } catch (e) {
+      throw new Error(`Failed to execute <${command}>\n\n${e}`);
+    }
+  }
+
+  async query(query: string) {
+    const results = await this.exec(`query ${query}`);
+    try {
+      return JSON.parse(results);
+    } catch (e) {
+      throw new Error(`Unable to parse query results:\n${results}\n\nError:\n${e}`);
+    }
+  }
+
+  async getVisibleWindows(): Promise<IYabaiWindow[]> {
+    return (await this.windows).filter(window => window.visible == 1);
+  }
+
+  async getCurrentWindow(): Promise<IYabaiWindow> {
+    const currentWindow = (await this.windows).find(window => window.focused == 1);
+    if (!currentWindow) {
+      throw new Error('No focused window found');
+    }
+    return currentWindow;
+  }
+
+  getCurrentSpace(): Promise<IYabaiSpace> {
+    return this.query('--spaces --space');
+  }
+
+  async focusWindow(windowId: number) {
+    storeSpaceFocus((await this.getCurrentSpace()).id, (await this.getCurrentWindow()).id);
+    return this.exec(`window --focus ${windowId}`);
+  }
+
+  async focusDisplay(index: number) {
+    return this.exec(`display --focus ${index}`);
   }
 }
 
-async function query(query: string) {
-  const results = await exec(`query ${query}`);
-  try {
-    return JSON.parse(results);
-  } catch (e) {
-    throw new Error(`Unable to parse query results:\n${results}\n\nError:\n${e}`);
-  }
-}
-
-async function getAllWindows(): Promise<IYabaiWindow[]> {
-  return (await query('--windows')) as IYabaiWindow[];
-}
-
-async function getVisibleWindows(): Promise<IYabaiWindow[]> {
-  const allWindows = await getAllWindows();
-  return allWindows.filter(window => window.visible == 1);
-}
-
-async function getCurrentWindow(windowScope?: IYabaiWindow[]): Promise<IYabaiWindow> {
-  const windows = windowScope || await getAllWindows();
-  const currentWindow = windows.find(window => window.focused == 1);
-  if (!currentWindow) {
-    throw new Error('No focused window found');
-  }
-  return currentWindow;
-}
-
-async function focusWindow(windowId: number) {
-  return exec(`window --focus ${windowId}`);
-}
-
-async function focusDisplay(index: number) {
-  return exec(`display --focus ${index}`);
-}
-
-export default {
-  exec,
-  query,
-  getAllWindows,
-  getCurrentWindow,
-  getVisibleWindows,
-  focusDisplay,
-  focusWindow,
-};
+export default new Yabai();
