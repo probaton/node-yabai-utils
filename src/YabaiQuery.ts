@@ -28,25 +28,8 @@ export default class YabaiQuery {
     return windows;
   }
 
-  async getSpaces(): Promise<IYabaiSpace[]> {
-    if (this.spaces) {
-      return this.spaces;
-    }
-    const spaces = this.query('--spaces');
-    this.spaces = spaces;
-    return spaces;
-  }
-
-  async getVisibleWindows(): Promise<IYabaiWindow[]> {
-    return (await this.getWindows()).filter(window => window.visible == 1);
-  }
-
   async getWindow(windowId: number): Promise<IYabaiWindow | undefined> {
     return (await this.getWindows()).find(window => window.id == windowId);
-  }
-
-  async getSpace(spaceId: number): Promise<IYabaiSpace | undefined> {
-    return (await this.getSpaces()).find(space => space.id == spaceId);
   }
 
   async getCurrentWindow(): Promise<IYabaiWindow> {
@@ -57,10 +40,27 @@ export default class YabaiQuery {
     return currentWindow;
   }
 
+  async getVisibleWindows(): Promise<IYabaiWindow[]> {
+    return (await this.getWindows()).filter(window => window.visible == 1);
+  }
+
+  async getSpaces(): Promise<IYabaiSpace[]> {
+    if (this.spaces) {
+      return this.spaces;
+    }
+    const spaces = this.query('--spaces');
+    this.spaces = spaces;
+    return spaces;
+  }
+
+  async getSpace(spaceId: number): Promise<IYabaiSpace | undefined> {
+    return (await this.getSpaces()).find(space => space.id == spaceId);
+  }
+
   async getCurrentSpace(): Promise<IYabaiSpace> {
     const currentSpace = (await this.getSpaces()).find(space => space.focused == 1);
     if (!currentSpace) {
-      throw new Error('No focuses space found');
+      throw new Error('No focused space found');
     }
     return currentSpace;
   }
