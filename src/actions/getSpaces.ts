@@ -2,7 +2,7 @@ import Yabai from '../Yabai';
 import { summarizeSpaces } from '../helpers/util';
 
 async function getSpaces() {
-  return summarizeSpaces(await Yabai.getSpaces());
+  return summarizeSpaces(await Yabai.query.getSpaces());
 }
 
 export default {
